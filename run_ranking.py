@@ -9,8 +9,8 @@ def main():
     ap.add_argument("--fasta", required=True, help="candidate sequences (e.g. 154 seqs)")
     ap.add_argument("--out", default="ranking.csv")
     ap.add_argument("--msa", default=None, help="precomputed aligned fasta; else run mafft")
-    ap.add_argument("--esm-model", default="esm2_t33_650M_UR50D")
-    ap.add_argument("--device", default="cuda")
+    ap.add_argument("--esm-model", default="esm2_t6_8M_UR50D")
+    ap.add_argument("--device", default="cpu")
     ap.add_argument("--masked", action="store_true", help="true pseudo-LL (slow)")
     ap.add_argument("--top-pairs", type=int, default=200)
     ap.add_argument("--penalty", type=float, default=0.5,
