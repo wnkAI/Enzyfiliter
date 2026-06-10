@@ -3,3 +3,4 @@ fair-esm>=2.0.0
 numpy>=1.23
 pandas>=1.5
 # external binary (not pip): mafft  -> conda install -c bioconda mafft
+pyfamsa>=0.5
