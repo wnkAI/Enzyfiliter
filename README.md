@@ -1,45 +1,45 @@
 # Enzyfiliter — label-free enzyme ranking (3-view consensus)
 
-纯序列、无活性标签、无训练的酶候选优先级排序。三个机制正交的弱信号投票:
+Sequence-only, activity-label-free, training-free prioritization of enzyme candidates. Three mechanistically orthogonal weak signals vote:
 
-1. **conservation** — MSA 高保守列(数据驱动的功能关键位点)的共识保真度
-2. **esm** — ESM-2 序列伪似然(自然度)
-3. **coevolution** — APC-corrected MI 强耦合残基网络的兼容性(PMI 形式,与 conservation 正交)
+1. **conservation** — consensus fidelity at highly conserved MSA columns (data-driven functionally critical sites)
+2. **esm** — ESM-2 sequence pseudo-likelihood (naturalness)
+3. **coevolution** — compatibility with the strongly coupled residue network from APC-corrected MI (PMI form, orthogonal to conservation)
 
-无参数 RRF 融合 + 跨视角分歧度作为不确定性。定位是「候选优先级」而非「预测活性」。
+Parameter-free RRF fusion, with cross-view disagreement as an uncertainty estimate. This is candidate *prioritization*, not activity *prediction*.
 
-## 安装
+## Installation
 
 ```bash
 pip install torch fair-esm numpy pandas pyfamsa
 ```
 
-MSA 用 pyfamsa(pip 自带,无需系统二进制);若本机装了 MAFFT 会优先用 MAFFT。
+MSA uses pyfamsa (bundled via pip, no system binary required); if MAFFT is installed locally it is preferred.
 
-## 运行
+## Usage
 
 ```bash
 python run_ranking.py --fasta data/alse_154_candidates.fasta --out ranking.csv
 ```
 
-默认用 **ESM-2 8M、CPU**,几秒到几分钟跑完,无需 GPU。首次自动下载 8M 权重(~30 MB)。
+Defaults to **ESM-2 8M on CPU**, finishing in seconds to minutes, no GPU needed. The 8M weights (~30 MB) are downloaded automatically on first run.
 
-可选参数:
-- `--esm-model esm2_t33_650M_UR50D --device cuda` 换更大模型 + GPU
-- `--masked` 严格逐位 mask 的 pseudo-LL(慢很多)
-- `--msa aligned.fasta` 跳过对齐,用已对齐文件
-- `--top-pairs 200` 共进化取多少强耦合列对
-- `--penalty 0.5` disagreement 惩罚强度(0 = 关闭)
-- `--no-esm` 只跑 MSA 两个视角(调试)
+Optional arguments:
+- `--esm-model esm2_t33_650M_UR50D --device cuda` — switch to a larger model + GPU
+- `--masked` — strict per-position masked pseudo-LL (much slower)
+- `--msa aligned.fasta` — skip alignment and use a pre-aligned file
+- `--top-pairs 200` — number of strongly coupled column pairs used for coevolution
+- `--penalty 0.5` — disagreement penalty strength (0 = off)
+- `--no-esm` — run only the two MSA views (debugging)
 
-## 输出 ranking.csv
+## Output ranking.csv
 
-| 列 | 含义 |
+| Column | Meaning |
 |---|---|
-| `final_rank` | 最终优先级(1 = 最高) |
-| `adj_score` / `rrf` | 惩罚后分(排序依据)/ 原始 RRF 分 |
-| `rank_conservation` / `rank_esm` / `rank_coevolution` | 各视角单独排名 |
-| `score_*` | 各视角原始分 |
-| `disagreement` | 跨视角分歧度(0~1,越大越不确定) |
+| `final_rank` | final priority (1 = highest) |
+| `adj_score` / `rrf` | penalized score (ranking basis) / raw RRF score |
+| `rank_conservation` / `rank_esm` / `rank_coevolution` | per-view individual ranks |
+| `score_*` | per-view raw scores |
+| `disagreement` | cross-view disagreement (0–1, higher = more uncertain) |
 
-挑候选:按 `final_rank` 取 top-K,优先选 `disagreement` 低的。
+Picking candidates: take the top-K by `final_rank`, preferring those with low `disagreement`.
